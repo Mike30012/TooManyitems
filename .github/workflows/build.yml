@@ -21,13 +21,15 @@ jobs:
 
       - name: Projekt vorbereiten
         run: |
-          if [ ! -f TooManyItems2.zip ]; then
-            echo "FEHLER: TooManyItems2.zip fehlt im Repo"
+          Z=$(ls -t *.zip 2>/dev/null | head -1)
+          if [ -z "$Z" ]; then
+            echo "FEHLER: keine ZIP im Repo"
             ls -la
             exit 1
           fi
+          echo "Nehme: $Z"
           mkdir -p work
-          unzip -o TooManyItems2.zip -d work
+          unzip -o "$Z" -d work
           B=$(find work -name build.gradle | head -1)
           if [ -z "$B" ]; then
             echo "FEHLER: kein build.gradle in der ZIP"
