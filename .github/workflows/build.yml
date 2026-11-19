@@ -21,18 +21,27 @@ jobs:
 
       - name: Projekt vorbereiten
         run: |
-          mkdir -p work
-          if [ -f TooManyItems2.zip ]; then
-            unzip -o TooManyItems2.zip -d work
-          else
-            rsync -a --exclude work --exclude .git ./ work/
+          if [ ! -f TooManyItems2.zip ]; then
+            echo "FEHLER: TooManyItems2.zip fehlt im Repo"
+            ls -la
+            exit 1
           fi
+          mkdir -p work
+          unzip -o TooManyItems2.zip -d work
+          B=$(find work -name build.gradle | head -1)
+          if [ -z "$B" ]; then
+            echo "FEHLER: kein build.gradle in der ZIP"
+            find work | head -50
+            exit 1
+          fi
+          echo "PROJ=$(dirname "$B")" >> "$GITHUB_ENV"
 
       - name: Bauen
-        working-directory: work
-        run: gradle build --no-daemon
+        run: |
+          cd "$PROJ"
+          gradle build --no-daemon
 
       - uses: actions/upload-artifact@v4
         with:
           name: TooManyItems2-jar
-          path: work/build/libs/TooManyItems2-*.jar
+          path: work/**/build/libs/TooManyItems2-*.jar
